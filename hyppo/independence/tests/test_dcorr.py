@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from numpy.testing import assert_almost_equal, assert_raises, assert_warns
+from numpy.testing import assert_almost_equal
 
 from ...tools import linear, power
 from .. import Dcorr
@@ -30,11 +30,20 @@ class TestDcorrStat:
         assert pvalue1 == pvalue2
 
     def test_dcorr_sqrt_bug(self):
-        x = np.array([1,2,3,4,5])
-        y = np.array([1,2,9,4,4])
+        x = np.array([1, 2, 3, 4, 5])
+        y = np.array([1, 2, 9, 4, 4])
         stat = Dcorr(bias=True).test(x, y, reps=0)[0]
 
         assert_almost_equal(stat, 0.762676242417, decimal=2)
+
+    @pytest.mark.parametrize("dtype", [np.float32, np.float64, np.int32, np.int64])
+    def test_dtypes(self, dtype):
+        np.random.seed(123456789)
+        x, y = linear(100, 1)
+        x_cast = (x * 100).astype(dtype)
+        y_cast = (y * 100).astype(dtype)
+        stat = Dcorr().statistic(x_cast, y_cast)
+        assert_almost_equal(stat, 1.0, decimal=2)
 
 
 class TestDcorrTypeIError:
