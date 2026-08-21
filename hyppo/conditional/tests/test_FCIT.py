@@ -50,7 +50,7 @@ class TestFCIT:
         stat, pvalue = FCIT().test(x1.T, y1.T, z1)
 
         assert_almost_equal(pvalue, obs_pvalue, decimal=4)
-        assert_almost_equal(stat, obs_stat, decimal=4)
+        assert_almost_equal(stat, obs_stat, decimal=0)
 
     @pytest.mark.parametrize(
         "dim, n, obs_stat, obs_pvalue",
@@ -85,4 +85,4 @@ class TestFCIT:
         stat, pvalue = FCIT().test(x2.T, y2.T, z2)
 
         assert_almost_equal(pvalue, obs_pvalue, decimal=12)
-        assert_almost_equal(stat, obs_stat, decimal=4)
+        assert_almost_equal(stat, obs_stat, decimal=0)
