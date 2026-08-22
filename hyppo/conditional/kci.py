@@ -112,6 +112,12 @@ class KCI(ConditionalIndependenceTest):
 
         T = len(y)
 
+        check_input = _CheckInputs(x, y, ignore_z_var=True)
+        x, y, _ = check_input()
+        if check_input.is_zero_variance:
+            self.stat = 0.0
+            return ConditionalIndependenceTestOutput(0.0, 1.0)
+
         Kx, Ky = self.compute_kern(x, y)
         stat = self.statistic(x, y)
 
