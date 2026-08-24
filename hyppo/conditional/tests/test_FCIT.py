@@ -10,21 +10,20 @@ class TestFCIT:
     @pytest.mark.parametrize(
         "n, obs_stat, obs_pvalue",
         [
-            (2000, 11.677197, 3.8168e-06),
+            (2000, 15.854040, 4.815497e-07),
         ],
     )
     def test_linear_oned(self, n, obs_stat, obs_pvalue):
         np.random.seed(123456789)
         x, y = rot_ksamp("linear", n, 1, k=2)
-        np.random.seed(123456789)
-        stat, pvalue = FCIT().test(x, y)
+        stat, pvalue = FCIT(random_state=0).test(x, y)
 
         assert_almost_equal(stat, obs_stat, decimal=-1)
         assert_almost_equal(pvalue, obs_pvalue, decimal=4)
 
     @pytest.mark.parametrize(
         "dim, n, obs_stat, obs_pvalue",
-        [(1, 100000, -0.16024, 0.56139), (2, 100000, -4.59882, 0.99876)],
+        [(1, 100000, -1.339294, 0.888837), (2, 100000, -6.985438, 0.999893)],
     )
     def test_null(self, dim, n, obs_stat, obs_pvalue):
         np.random.seed(12)
@@ -46,8 +45,9 @@ class TestFCIT:
             ).T
         )
 
-        np.random.seed(122)
-        stat, pvalue = FCIT().test(x1.T, y1.T, z1)
+        # random_state pins every source of randomness FCIT uses internally,
+        # so this is reproducible across scikit-learn versions (gh-427).
+        stat, pvalue = FCIT(random_state=0).test(x1.T, y1.T, z1)
 
         assert_almost_equal(pvalue, obs_pvalue, decimal=4)
         assert_almost_equal(stat, obs_stat, decimal=4)
@@ -55,8 +55,8 @@ class TestFCIT:
     @pytest.mark.parametrize(
         "dim, n, obs_stat, obs_pvalue",
         [
-            (1, 100000, 89.271754, 2.91447597e-12),
-            (2, 100000, 161.35165, 4.63412957e-14),
+            (1, 100000, 100.371119, 1.283942e-12),
+            (2, 100000, 187.502936, 1.619644e-14),
         ],
     )
     def test_alternative(self, dim, n, obs_stat, obs_pvalue):
@@ -81,8 +81,7 @@ class TestFCIT:
             ).T
         )
 
-        np.random.seed(122)
-        stat, pvalue = FCIT().test(x2.T, y2.T, z2)
+        stat, pvalue = FCIT(random_state=0).test(x2.T, y2.T, z2)
 
         assert_almost_equal(pvalue, obs_pvalue, decimal=12)
         assert_almost_equal(stat, obs_stat, decimal=4)
