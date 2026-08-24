@@ -26,6 +26,7 @@ class _CheckInputs:
             contains_nan(x1)
             contains_nan(self.y)
             check_min_samples(x1)
+            # convert_xy_float64 converts both x1 and self.y to float64
             x1, self.y = convert_xy_float64(x1, self.y)
             self.x[i] = x1
 
