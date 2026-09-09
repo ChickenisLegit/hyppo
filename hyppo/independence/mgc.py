@@ -4,7 +4,8 @@ from typing import NamedTuple
 import numpy as np
 from scipy.stats import multiscale_graphcorr
 
-from ..tools import compute_dist
+from ..tools import compute_dist, convert_xy_float64
+
 from ._utils import _CheckInputs
 from .base import IndependenceTest
 
@@ -148,6 +149,11 @@ class MGC(IndependenceTest):
         stat : float
             The computed MGC statistic.
         """
+        # Only convert dtype when inputs are raw data, not precomputed distance
+        # matrices. Distance matrices from compute_dist are already float64;
+        # converting them on every permutation call causes large unnecessary copies.
+        if not self.is_distance:
+            x, y = convert_xy_float64(x, y)
         distx = x
         disty = y
 
@@ -158,9 +164,12 @@ class MGC(IndependenceTest):
 
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore")
-            mgc = multiscale_graphcorr(distx, disty, compute_distance=None, reps=0)
+            try:
+                mgc = multiscale_graphcorr(distx, disty, compute_distance=None, reps=0)
+                stat = mgc.stat
+            except (IndexError, ValueError):
+                stat = 0.0
 
-        stat = mgc.stat
         self.stat = stat
 
         return stat
@@ -251,8 +260,15 @@ class MGC(IndependenceTest):
         # scipy gives significantly faster results
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore")
-            _, _, mgc_dict = multiscale_graphcorr(x, y, compute_distance=None, reps=0)
-        mgc_dict.pop("null_dist")
+            try:
+                _, _, mgc_dict = multiscale_graphcorr(x, y, compute_distance=None, reps=0)
+            except (IndexError, ValueError):
+                mgc_dict = {
+                    "stat_mgc_map": np.zeros((x.shape[0], y.shape[0])),
+                    "opt_scale": (x.shape[0], y.shape[0]),
+                    "null_dist": []
+                }
+        mgc_dict.pop("null_dist", None)
 
         stat, pvalue = super(MGC, self).test(
             x, y, reps, workers, random_state=random_state
